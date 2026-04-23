@@ -937,6 +937,35 @@ footer { animation: fadeUp 0.4s ease 0.5s both; }
   margin-right: 4px;
 }
 
+.semantic-mission .mission-top {
+  position: relative;
+}
+
+.mission-close-all {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--color8);
+  background: transparent;
+  color: var(--color8);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 0;
+  margin-left: auto;
+  opacity: 0.55;
+  transition: opacity 0.15s, color 0.15s, background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.mission-close-all:hover {
+  opacity: 1;
+  color: var(--background);
+  background: var(--color6);
+  border-color: var(--color6);
+}
+.mission-close-all svg { width: 12px; height: 12px; }
+
 /* ================================================================
    COMMAND BAR — natural-language tab commands (":")
    ================================================================ */

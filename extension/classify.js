@@ -102,6 +102,34 @@
     badge.textContent = `${tabs.length} tab${tabs.length !== 1 ? 's' : ''}`;
     top.appendChild(badge);
 
+    // Close-whole-section button (X).
+    const closeAll = document.createElement('button');
+    closeAll.className = 'mission-close-all';
+    closeAll.title = `close all ${tabs.length} tabs in "${name}"`;
+    closeAll.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
+    closeAll.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const ids = tabs.map(t => t.id).filter(id => id != null);
+      if (ids.length === 0) return;
+      try {
+        await chrome.tabs.remove(ids);
+        if (typeof window.fetchOpenTabs === 'function') await window.fetchOpenTabs();
+        // Remove the card from the classified row.
+        card.remove();
+        // If that was the last card, hide the section.
+        const section = document.getElementById('classifiedSection');
+        if (section && !section.querySelector('.mission-card')) {
+          section.style.display = 'none';
+        }
+        showStatus(`closed ${ids.length} in "${name}"`, 'ok');
+      } catch (err) {
+        console.error('[classify] close-all failed', err);
+        showStatus('close failed', 'error');
+      }
+    });
+    top.appendChild(closeAll);
+
     const pages = document.createElement('div');
     pages.className = 'mission-pages';
     for (const t of tabs) {

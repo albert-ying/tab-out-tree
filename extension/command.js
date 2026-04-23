@@ -15,10 +15,8 @@
 
   const BRIDGE_BASE = 'http://127.0.0.1:8787';
 
-  // Simple state machine: 'idle' -> 'typing' -> 'preview' -> 'idle'
+  // 'idle' -> 'typing' -> 'idle'. No explicit confirm step — Enter runs.
   let state = 'idle';
-  let pendingIds = [];
-  let pendingReason = '';
 
   const bar    = document.getElementById('command-bar');
   const input  = document.getElementById('command-input');
@@ -37,8 +35,6 @@
 
   function close() {
     state = 'idle';
-    pendingIds = [];
-    pendingReason = '';
     input.value = '';
     hint.textContent = '';
     bar.classList.remove('visible');
@@ -131,45 +127,27 @@
 
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (state === 'typing') {
-        const cmd = input.value.trim();
-        if (!cmd) { close(); return; }
-        const result = await runCloseCommand(cmd);
-        if (!result) return;  // stays in typing; user can edit + retry
+      const cmd = input.value.trim();
+      if (!cmd) { close(); return; }
 
-        const ids = result.close_ids || [];
-        pendingIds = ids;
-        pendingReason = result.reason || '';
+      const result = await runCloseCommand(cmd);
+      if (!result) return;  // error already shown in hint, user can retry
 
-        if (ids.length === 0) {
-          setHint(`no match · ${pendingReason || 'nothing to close'} · Esc`, 'warn');
-          return;
-        }
+      const ids = result.close_ids || [];
+      const reason = result.reason || '';
 
-        applyPreview(ids);
-        state = 'preview';
-        const costBit = result.meta
-          ? ` · $${(result.meta.cost_usd || 0).toFixed(3)}`
-          : '';
-        setHint(
-          `close ${ids.length} · ${pendingReason}${costBit} · Enter confirm / Esc cancel`,
-          'confirm'
-        );
+      if (ids.length === 0) {
+        setHint(`no match · ${reason || 'nothing to close'}`, 'warn');
+        setTimeout(close, 1600);
         return;
       }
 
-      if (state === 'preview') {
-        await doClose(pendingIds);
-        close();
-        return;
-      }
-    }
-
-    // While in preview state, any edit takes us back to typing (Claude rerun).
-    if (state === 'preview' && e.key.length === 1) {
-      state = 'typing';
-      clearPreview();
-      setHint('', '');
+      // Briefly highlight the matching tabs so it's visible what's going.
+      applyPreview(ids);
+      setHint(`closing ${ids.length} · ${reason}`, 'confirm');
+      await doClose(ids);
+      setTimeout(close, 500);
+      return;
     }
   });
 
