@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tab Out</title>
 
-  <!-- Google Fonts: Newsreader (for headings/numbers) + DM Sans (for body text) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+  <!-- StartTree skin: bundled Hack mono font (loaded via @font-face in style.css) -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!-- Invisible focus trap — shortcuts.js keeps focus here so keystrokes
+     reach the handler instead of Chrome's omnibox. -->
+<input id="focus-trap" autofocus tabindex="-1">
+
 <div class="container">
 
 
@@ -129,7 +130,12 @@
 <!-- If the file doesn't exist, that's fine — app.js uses sensible defaults. -->
 <script src="config.local.js" onerror="/* no personal config, that's fine */"></script>
 
+<!-- Keybuffer readout — shows the typed chord, e.g. "~ λ fj_" -->
+<div id="keybuf"></div>
+
 <!-- Main dashboard logic — loads last so the DOM is ready -->
 <script src="app.js"></script>
+<!-- Keyboard navigation — mounts after app.js so its DOM is present -->
+<script src="shortcuts.js"></script>
 </body>
 </html>
