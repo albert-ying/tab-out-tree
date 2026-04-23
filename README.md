@@ -44,6 +44,7 @@ No server. No account. No external calls. Just a Chrome extension.
 | `Shift+<hint>`  | close that tab                      |
 | `g<hint>`       | jump to first tab in a group        |
 | `s<hint>`       | save tab for later                  |
+| `c`             | classify tabs with Claude (bridge)  |
 | `/`             | focus archive search                |
 | `r`             | reload tab list                     |
 | `?`             | toggle help overlay                 |
@@ -53,12 +54,39 @@ Hints auto-regenerate whenever tabs open or close.
 
 ---
 
+## Classification with Claude (optional)
+
+Press `c` on the new tab page and Claude classifies your open tabs into
+3–6 cross-domain semantic groups ("longevity research", "faculty search",
+"shopping", ...), rendered as a second row of cards above the domain
+grouping.
+
+It relies on a small localhost bridge that wraps `claude -p` and uses
+your existing Claude Code auth (Max subscription if you have one — no
+separate API key).
+
+```bash
+# one-off
+node bridge/claude-bridge.js
+
+# or auto-start on login
+cp bridge/com.albertying.tab-out-tree.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.albertying.tab-out-tree.plist
+```
+
+Default model is Haiku (fast, a few cents per classification). See
+`bridge/README.md` for env vars.
+
+---
+
 ## Differences from upstream `tab-out`
 
 - Entirely new CSS theme (StartTree `void`-style palette, driven from pywal)
 - New `extension/shortcuts.js` adds home-row chord hints, mode prefixes, buffer readout, help overlay
+- New `extension/classify.js` + `bridge/` daemon for on-demand Claude classification
 - `extension/Hack.ttf` bundled for the terminal font
-- `extension/index.html` adds the focus trap, keybuffer, and shortcuts script tag
+- `extension/index.html` adds the focus trap, keybuffer, and script tags
+- `extension/manifest.json` adds `host_permissions` for the localhost bridge
 
 Everything else — the live tab indexing, domain grouping, save-for-later, duplicate detection — is upstream tab-out and unchanged.
 

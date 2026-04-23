@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Tab Out",
-  "version": "1.0.0",
-  "description": "Keep tabs on your tabs. New tab page that groups your open tabs by domain and lets you close them with style.",
+  "name": "Tab Out Tree",
+  "version": "1.1.0",
+  "description": "StartTree-skinned fork of Tab Out with home-row keyboard nav and optional Claude-powered tab classification.",
   "permissions": ["tabs", "activeTab", "storage"],
+  "host_permissions": ["http://127.0.0.1:8787/*", "http://localhost:8787/*"],
   "chrome_url_overrides": { "newtab": "index.html" },
   "background": { "service_worker": "background.js" },
   "action": {

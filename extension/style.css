@@ -874,6 +874,70 @@ footer { animation: fadeUp 0.4s ease 0.5s both; }
 ::selection { background: var(--color14); color: var(--background); }
 
 /* ================================================================
+   SEMANTIC MISSIONS — Claude-classified cross-domain groups
+   ================================================================ */
+
+.classified-section {
+  margin-bottom: 24px;
+}
+.classified-section .section-header h2::before {
+  content: "~$ ";      /* shell prompt prefix instead of the > used by domain */
+  color: var(--color8);
+}
+.classified-section.is-loading .section-header h2 {
+  opacity: 0.6;
+}
+
+.classified-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--color8);
+  background: transparent;
+  color: var(--color8);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 0;
+  opacity: 0.55;
+  transition: opacity 0.15s, color 0.15s, background 0.15s, border-color 0.15s;
+}
+.classified-close:hover { opacity: 1; color: var(--background); background: var(--color8); }
+.classified-close svg { width: 12px; height: 12px; }
+
+/* Semantic cards keep the monospace tree look but distinguish themselves
+   with a solid left stripe in the accent and a different branch glyph. */
+.semantic-mission {
+  border-left-width: 3px;
+  border-left-color: var(--color8);
+  position: relative;
+}
+.semantic-mission::before {
+  background: var(--color8);
+  opacity: 1;
+  height: 2px;
+}
+.semantic-mission .mission-name {
+  color: var(--color14);
+  text-transform: lowercase;
+}
+.semantic-mission .mission-name::before {
+  content: "@ ";
+  color: var(--color8);
+  opacity: 0.9;
+}
+.semantic-mission .mission-pages {
+  border-left-color: var(--color8);
+}
+.semantic-mission .page-chip::before {
+  content: "·";
+  color: var(--color8);
+  opacity: 0.6;
+  margin-right: 4px;
+}
+
+/* ================================================================
    KEYBOARD NAVIGATION — shortcuts.js
    ================================================================ */
 

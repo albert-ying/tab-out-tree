@@ -215,6 +215,7 @@
           <dt>Shift+&lt;hint&gt;</dt><dd>close tab</dd>
           <dt>g&lt;hint&gt;</dt><dd>jump to first tab in group</dd>
           <dt>s&lt;hint&gt;</dt><dd>save tab for later</dd>
+          <dt>c</dt><dd>classify tabs with Claude</dd>
           <dt>/</dt><dd>focus archive search</dd>
           <dt>r</dt><dd>reload tab list</dd>
           <dt>?</dt><dd>toggle this help</dd>
@@ -272,6 +273,15 @@
       showKeybuf('<span class="prompt-arrow">~ λ</span> reload');
       clearTimeout(bufTimeout);
       bufTimeout = setTimeout(resetBuffer, 500);
+      return;
+    }
+
+    if (e.key === 'c' && !buffer && !mode) {
+      // Ask Claude (via the local bridge) to classify the current tabs.
+      e.preventDefault();
+      if (typeof window.classifyAndRender === 'function') {
+        window.classifyAndRender();
+      }
       return;
     }
 
