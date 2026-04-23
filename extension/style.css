@@ -938,6 +938,81 @@ footer { animation: fadeUp 0.4s ease 0.5s both; }
 }
 
 /* ================================================================
+   COMMAND BAR — natural-language tab commands (":")
+   ================================================================ */
+
+#command-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 110;
+  background: var(--background);
+  border: 1px solid var(--color8);
+  box-shadow: 0 0 0 1px var(--color8), 0 10px 40px rgba(0,0,0,0.4);
+  padding: 8px 14px;
+  min-width: 520px;
+  max-width: 80vw;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#command-bar .cmd-prompt {
+  color: var(--color14);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#command-bar input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--foreground);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 2px 0;
+  caret-color: var(--color14);
+}
+#command-bar input::placeholder { color: var(--color8); opacity: 0.6; }
+
+#command-bar .cmd-hint {
+  color: var(--color8);
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#command-bar .cmd-hint[data-kind="loading"] { color: var(--color14); }
+#command-bar .cmd-hint[data-kind="error"]   { color: var(--color6); }
+#command-bar .cmd-hint[data-kind="warn"]    { color: var(--color13); }
+#command-bar .cmd-hint[data-kind="confirm"] {
+  color: var(--foreground);
+  background: var(--color14);
+  color: var(--background);
+  padding: 1px 6px;
+  border-radius: 0;
+  max-width: none;
+}
+
+/* Preview highlight on matching / non-matching tabs during command mode. */
+.page-chip.cmd-match {
+  background: color-mix(in srgb, var(--color14) 22%, transparent);
+  outline: 1px solid var(--color14);
+  outline-offset: -1px;
+}
+.page-chip.cmd-miss {
+  opacity: 0.22;
+}
+
+/* ================================================================
    KEYBOARD NAVIGATION — shortcuts.js
    ================================================================ */
 

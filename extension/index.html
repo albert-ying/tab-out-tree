@@ -133,10 +133,19 @@
 <!-- Keybuffer readout — shows the typed chord, e.g. "~ λ fj_" -->
 <div id="keybuf"></div>
 
+<!-- Command bar — opens on ":" for natural-language tab commands -->
+<div id="command-bar" style="display:none">
+  <span class="cmd-prompt">~ λ &gt;</span>
+  <input type="text" id="command-input" autocomplete="off" spellcheck="false">
+  <span class="cmd-hint" id="command-hint"></span>
+</div>
+
 <!-- Main dashboard logic — loads last so the DOM is ready -->
 <script src="app.js"></script>
 <!-- Claude classification (optional; talks to bridge/claude-bridge.js on :8787) -->
 <script src="classify.js"></script>
+<!-- Natural-language command bar (":" -> close matching tabs) -->
+<script src="command.js"></script>
 <!-- Keyboard navigation — mounts after app.js so its DOM is present -->
 <script src="shortcuts.js"></script>
 </body>

@@ -45,6 +45,7 @@ No server. No account. No external calls. Just a Chrome extension.
 | `g<hint>`       | jump to first tab in a group        |
 | `s<hint>`       | save tab for later                  |
 | `c`             | classify tabs with Claude (bridge)  |
+| `:`             | natural-language tab command        |
 | `/`             | focus archive search                |
 | `r`             | reload tab list                     |
 | `?`             | toggle help overlay                 |
@@ -76,6 +77,19 @@ launchctl load ~/Library/LaunchAgents/com.albertying.tab-out-tree.plist
 
 Default model is Haiku (fast, a few cents per classification). See
 `bridge/README.md` for env vars.
+
+### Natural-language command bar
+
+Press `:` and type a sentence about what to do with the open tabs.
+Claude picks the matching ids, the extension previews them (match =
+lit up, rest = dimmed), and a second `Enter` confirms the action.
+Currently scoped to closing, e.g.:
+
+- `close all the shopping tabs`
+- `close anything about faculty search that I've already opened before`
+- `keep only the research papers` (Claude infers what to close)
+
+`Esc` cancels the preview. Any edit after preview re-runs the command.
 
 ---
 

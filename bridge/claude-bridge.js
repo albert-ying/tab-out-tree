@@ -35,11 +35,28 @@ const CLASSIFY_PROMPT = [
   ''
 ].join('\n');
 
-function runClaude(userContent) {
+const CLOSE_COMMAND_PROMPT = [
+  'You help a user manage their browser tabs.',
+  '',
+  'The user will give you a natural-language command describing which tabs to close.',
+  'You return the numeric ids of tabs that match their intent.',
+  '',
+  'Respond with STRICT JSON only. No markdown fences, no preamble:',
+  '{"close_ids":[<int>,...],"reason":"<one short sentence, lowercase>"}',
+  '',
+  'Rules:',
+  '- Only include tab ids that clearly match the command.',
+  '- If the command is vague or matches nothing, return {"close_ids":[],"reason":"..."} explaining why.',
+  '- The "reason" is what you would tell the user to justify the selection, one sentence.',
+  '- Do not invent ids — only pick from the provided list.',
+  ''
+].join('\n');
+
+function runClaude(fullPrompt) {
   return new Promise((resolve, reject) => {
     // Run from a neutral cwd so project CLAUDE.md files aren't loaded.
     const proc = spawn('claude', [
-      '-p', `${CLASSIFY_PROMPT}\n\nTabs:\n${userContent}`,
+      '-p', fullPrompt,
       '--model', MODEL,
       '--output-format', 'json',
     ], {
@@ -66,16 +83,14 @@ function runClaude(userContent) {
           .replace(/\s*```$/, '')
           .trim();
         const parsed = JSON.parse(stripped);
-        resolve({
-          groups: parsed.groups || [],
-          meta: {
-            cost_usd: wrapper.total_cost_usd,
-            duration_ms: wrapper.duration_ms,
-            cache_read: wrapper.usage && wrapper.usage.cache_read_input_tokens,
-            cache_create: wrapper.usage && wrapper.usage.cache_creation_input_tokens,
-            model: MODEL,
-          },
-        });
+        parsed.meta = {
+          cost_usd: wrapper.total_cost_usd,
+          duration_ms: wrapper.duration_ms,
+          cache_read: wrapper.usage && wrapper.usage.cache_read_input_tokens,
+          cache_create: wrapper.usage && wrapper.usage.cache_creation_input_tokens,
+          model: MODEL,
+        };
+        resolve(parsed);
       } catch (e) {
         reject(new Error(`parse error: ${e.message}\nstdout: ${stdout.slice(0, 500)}`));
       }
@@ -118,13 +133,71 @@ const server = http.createServer((req, res) => {
           url: (t.url || '').slice(0, 300),
         }));
         const t0 = Date.now();
-        const result = await runClaude(JSON.stringify(clean));
+        const prompt = `${CLASSIFY_PROMPT}\n\nTabs:\n${JSON.stringify(clean)}`;
+        const result = await runClaude(prompt);
+        const groups = result.groups || [];
         const elapsed = Date.now() - t0;
-        console.log(`[classify] ${tabs.length} tabs -> ${result.groups.length} groups in ${elapsed}ms (cost $${(result.meta.cost_usd || 0).toFixed(4)})`);
+        console.log(`[classify] ${tabs.length} tabs -> ${groups.length} groups in ${elapsed}ms (cost $${(result.meta.cost_usd || 0).toFixed(4)})`);
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(result));
+        res.end(JSON.stringify({ groups, meta: result.meta }));
       } catch (e) {
         console.error('[classify] error:', e.message);
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && req.url === '/close-command') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const { tabs, command } = JSON.parse(body || '{}');
+        if (!Array.isArray(tabs) || tabs.length === 0) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'tabs[] required' }));
+          return;
+        }
+        if (typeof command !== 'string' || !command.trim()) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'command required' }));
+          return;
+        }
+        const clean = tabs.map(t => ({
+          id: t.id,
+          title: (t.title || '').slice(0, 180),
+          url: (t.url || '').slice(0, 300),
+        }));
+        const t0 = Date.now();
+        const prompt = [
+          CLOSE_COMMAND_PROMPT,
+          '',
+          'Tabs:',
+          JSON.stringify(clean),
+          '',
+          'Command:',
+          command.trim(),
+        ].join('\n');
+        const raw = await runClaude(prompt);
+        // Validate ids are actually present in the provided list — Claude
+        // shouldn't invent ids, but hard-filter in case of hallucinated output.
+        const validIds = new Set(clean.map(t => t.id));
+        const filtered = (raw.close_ids || []).filter(id => validIds.has(id));
+        const elapsed = Date.now() - t0;
+        console.log(`[close-command] "${command.slice(0,60)}" -> ${filtered.length}/${tabs.length} in ${elapsed}ms (cost $${(raw.meta.cost_usd || 0).toFixed(4)})`);
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({
+          close_ids: filtered,
+          reason: raw.reason || '',
+          meta: raw.meta,
+        }));
+      } catch (e) {
+        console.error('[close-command] error:', e.message);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({ error: e.message }));
